@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>皇室战争卡牌隐藏数据</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#fff;color:#222;min-height:100vh;font-size:14px}
+.header{background:linear-gradient(135deg,#1a1a2e,#2d1b4e);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;border-bottom:3px solid #ffd700}
+.header h1{font-size:20px;color:#ffd700;font-weight:700}
+.header h1 small{font-size:12px;color:#9988bb;font-weight:400;margin-left:10px}
+.header .info{font-size:12px;color:#8877aa;display:flex;align-items:center;gap:10px}
+.lang-btn{padding:3px 10px;border:1px solid #8877aa;border-radius:3px;background:transparent;color:#8877aa;cursor:pointer;font-size:11px;font-family:inherit;transition:all .2s}
+.lang-btn:hover{color:#ffd700;border-color:#ffd700}
+.lang-btn.active{background:#ffd700;color:#1a1a2e;border-color:#ffd700}
+.tabs{display:flex;background:#f5f5fa;padding:0 12px;position:sticky;top:0;z-index:100;border-bottom:1px solid #ddd;overflow-x:auto}
+.tab{padding:10px 14px;cursor:pointer;font-size:13px;color:#666;border:none;background:transparent;transition:all .2s;white-space:nowrap;font-family:inherit;border-bottom:2px solid transparent}
+.tab:hover{color:#333;background:#eeeef5}
+.tab.active{color:#1a1a2e;border-bottom-color:#1a1a2e;background:#fff;font-weight:600}
+.tab .badge{font-size:10px;background:#eee;color:#888;border-radius:8px;padding:1px 7px;margin-left:5px}
+.tab.active .badge{background:#1a1a2e;color:#ffd700}
+.controls{display:flex;gap:8px;padding:8px 14px;background:#fafafa;align-items:center;flex-wrap:wrap;border-bottom:1px solid #eee}
+.controls input{flex:1;min-width:140px;padding:6px 10px;border:1px solid #ccc;border-radius:4px;background:#fff;color:#333;font-size:12px;outline:none}
+.controls input:focus{border-color:#1a1a2e}
+.controls select{padding:6px 10px;border:1px solid #ccc;border-radius:4px;background:#fff;color:#333;font-size:12px;outline:none}
+.view-toggle{display:flex;gap:2px;background:#eee;border-radius:4px;padding:2px}
+.view-toggle button{padding:4px 10px;border:none;background:transparent;color:#888;border-radius:3px;cursor:pointer;font-size:12px;font-family:inherit}
+.view-toggle button.active{background:#fff;color:#1a1a2e;font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.view-toggle button:hover{color:#333}
+.stats{font-size:11px;color:#888;padding:4px 14px;background:#fafafa;border-bottom:1px solid #eee}
+.tbl-wrap{overflow-x:auto;max-height:calc(100vh - 180px);overflow-y:auto;padding:8px}
+.tbl-wrap table{width:100%;border-collapse:collapse;font-size:12px;min-width:400px}
+.tbl-wrap th{background:#f0f0f5;color:#1a1a2e;padding:5px 7px;text-align:left;white-space:nowrap;cursor:pointer;font-weight:600;border:1px solid #ddd;position:sticky;top:0;z-index:10;font-size:11px;user-select:none}
+.tbl-wrap th:hover{background:#e5e5f0}
+.tbl-wrap th .arrow{font-size:9px;margin-left:2px;color:#999}
+.tbl-wrap td{padding:4px 7px;border:1px solid #eee;color:#444;max-width:180px;word-break:break-word}
+.tbl-wrap td.name{min-width:120px}
+.tbl-wrap tr:nth-child(even) td{background:#fafafe}
+.tbl-wrap tr:hover td{background:#f0f0ff}
+.r-common td.name{color:#2196F3}
+.r-rare td.name{color:#FF9800}
+.r-epic td.name{color:#9C27B0}
+.r-legendary td.name{color:#4CAF50}
+.r-champion td.name{color:#F44336}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;padding:10px}
+.card{background:#fff;border:1px solid #ddd;border-radius:8px;overflow:hidden}
+.card:hover{border-color:#1a1a2e55;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.card-hd{display:flex;align-items:center;gap:6px;padding:7px 10px;border-bottom:1px solid #eee;flex-wrap:wrap}
+.card-hd .name{font-size:13px;font-weight:600;color:#1a1a2e;margin-right:auto}
+.card-hd .cost{font-size:10px;background:#1a1a2e;padding:1px 8px;border-radius:8px;color:#ffd700}
+.card-hd .rlg{font-size:10px;padding:1px 8px;border-radius:8px}
+.card-body{padding:4px 10px 6px}
+.card-row{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid #f0f0f0;gap:8px;font-size:11px}
+.card-row .l{color:#888;white-space:nowrap}
+.card-row .v{color:#444;text-align:right;word-break:break-word}
+.footer{padding:12px 14px;text-align:center;font-size:11px;color:#aaa;border-top:1px solid #eee;margin-top:12px}
+.footer code{background:#f0f0f5;padding:1px 5px;border-radius:3px}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>皇室战争卡牌隐藏数据<small>完整属性</small></h1>
+  <div class="info"><span id="totalCards">0</span> <span id="totalLabel">条目</span>
+  <button class="lang-btn active" id="langZh">中</button>
+  <button class="lang-btn" id="langEn">EN</button></div>
+</div>
+<div class="tabs" id="tabs"></div>
+<div class="controls">
+  <input type="text" id="search" placeholder="搜索卡牌名称、属性...">
+  <select id="rarityF"><option value="">全部稀有度</option></select>
+  <div class="view-toggle">
+    <button data-v="table" class="active">表格</button>
+    <button data-v="card">卡片</button>
+  </div>
+</div>
+<div class="stats" id="stats"></div>
+<div id="content"></div>
+<div class="footer">
+  <span id="footerUpdate">数据更新：截止到2026.5</span>
+</div>
+
+<script src="data.js"></script>
+<script>
+(function(){
+var $ = function(s,c){return (c||document).querySelector(s);};
+var $$ = function(s,c){return (c||document).querySelectorAll(s);};
+
+// ---- helpers ----
+function cardNameEn(zhName){
+  if(typeof CARD_NAMES_EN !== 'undefined' && CARD_NAMES_EN[zhName]) return CARD_NAMES_EN[zhName];
+  return zhName;
+}
+
+function targetLabel(v){
+  v = String(v||'');
+  if(lang === 'en' && typeof TARGET_EN !== 'undefined' && TARGET_EN[v]) return TARGET_EN[v];
+  return v;
+}
+
+function valEn(v){
+  if(lang !== 'en') return v;
+  v = String(v||'');
+  if(v === '是') return 'Yes';
+  if(v === '否') return 'No';
+  return v;
+}
+
+// ---- i18n ----
+var lang = 'zh';
+var UI = {
+  zh: {
+    total: '条目', search: '搜索卡牌名称、属性...', allRarity: '全部稀有度',
+    table: '表格', card: '卡片', noResult: '无匹配结果',
+    rows: '行', cols: '列', filtered: '筛选后',
+    footerUpdate: '数据更新：截止到2026.5',
+  },
+  en: {
+    total: 'cards', search: 'Search cards...', allRarity: 'All Rarities',
+    table: 'Table', card: 'Cards', noResult: 'No results',
+    rows: 'rows', cols: 'cols', filtered: 'filtered',
+    footerUpdate: 'Data updated to 2026.5',
+  }
+};
+function t(key){ return UI[lang][key] || key; }
+function applyUI(){
+  $('#search').placeholder = t('search');
+  $('#rarityF').options[0].textContent = t('allRarity');
+  var vt = $$('.view-toggle button');
+  vt[0].textContent = t('table');
+  vt[1].textContent = t('card');
+  $('#totalLabel').textContent = t('total');
+  var fu = $('#footerUpdate');
+  if(fu) fu.textContent = t('footerUpdate');
+  document.title = lang === 'en' ? 'Clash Royale Hidden Stats' : '皇室战争卡牌隐藏数据';
+  var h1 = $('.header h1');
+  h1.childNodes[0].textContent = lang === 'en' ? 'Clash Royale Hidden Stats' : '皇室战争卡牌隐藏数据';
+  if(h1.childNodes[1]) h1.childNodes[1].textContent = lang === 'en' ? 'Complete Stats' : '完整属性';
+  initRarity();
+}
+
+// ---- state ----
+var categories = Object.keys(CARD_DATA);
+var cur = categories[0];
+var view = 'table';
+var query = '';
+var rarity = '';
+var sortCol = null;
+var sortDir = 1;
+
+// ---- helpers ----
+function esc(v){
+  if(v == null) return '';
+  return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function catLabel(cat){
+  if(lang === 'en' && CATEGORIES_EN && CATEGORIES_EN[cat]) return CATEGORIES_EN[cat];
+  return cat;
+}
+
+function getHeaders(){
+  if(lang === 'en' && HEADERS_EN && HEADERS_EN[cur]) return HEADERS_EN[cur];
+  var d = CARD_DATA[cur]; return d ? d.headers : [];
+}
+
+function getCards(){ var d = CARD_DATA[cur]; return d ? d.cards : []; }
+
+function getZhHeaders(){ var d = CARD_DATA[cur]; return d ? d.headers : []; }
+
+function rarityLabel(v){
+  v = String(v||'');
+  if(lang === 'en' && RARITY_EN && RARITY_EN[v]) return RARITY_EN[v];
+  if(v.indexOf('普通')>=0) return '普通';
+  if(v.indexOf('稀有')>=0) return '稀有';
+  if(v.indexOf('史诗')>=0) return '史诗';
+  if(v.indexOf('传说')>=0) return '传说';
+  if(v.indexOf('英雄')>=0) return '英雄';
+  return v;
+}
+
+function rarityClass(v){
+  v = String(v||'');
+  if(v.indexOf('普通')>=0) return 'r-common';
+  if(v.indexOf('稀有')>=0) return 'r-rare';
+  if(v.indexOf('史诗')>=0) return 'r-epic';
+  if(v.indexOf('传说')>=0) return 'r-legendary';
+  if(v.indexOf('英雄')>=0) return 'r-champion';
+  return '';
+}
+
+function rarityColor(v){
+  v = String(v||'');
+  if(v.indexOf('普通')>=0) return '#2196F3';
+  if(v.indexOf('稀有')>=0) return '#FF9800';
+  if(v.indexOf('史诗')>=0) return '#9C27B0';
+  if(v.indexOf('传说')>=0) return '#4CAF50';
+  if(v.indexOf('英雄')>=0) return '#F44336';
+  return '#666';
+}
+
+function hiddenCols(){
+  if(lang === 'en') return {'Short':1, 'Code':1, '卡牌':1};
+  return {'Short':1, 'Code':1, 'Card':1};
+}
+
+function visibleCols(headers){
+  var hide = hiddenCols();
+  var out = [];
+  for(var i = 0; i < headers.length; i++){
+    if(!hide[headers[i]]) out.push(i);
+  }
+  return out;
+}
+
+function cardNameIdx(headers){
+  if(lang === 'en') return headers.indexOf('Card');
+  return headers.indexOf('卡牌');
+}
+
+function matches(card, zhHeaders){
+  if(query){
+    var q = query.toLowerCase();
+    var found = false;
+    for(var i = 0; i < card.length; i++){
+      var v = card[i];
+      if(v != null && String(v).toLowerCase().indexOf(q) >= 0){ found = true; break; }
+    }
+    if(!found) return false;
+  }
+  if(rarity){
+    var ri = zhHeaders.indexOf('稀有度');
+    if(ri < 0) return false;
+    var rv = String(card[ri]||'');
+    if(lang === 'en'){
+      var enVal = RARITY_EN && RARITY_EN[rv] ? RARITY_EN[rv] : rv;
+      if(enVal.indexOf(rarity) < 0) return false;
+    } else {
+      if(rv.indexOf(rarity) < 0) return false;
+    }
+  }
+  return true;
+}
+
+// ---- rarity dropdown ----
+function initRarity(){
+  var sel = $('#rarityF');
+  if(!sel) return;
+  var set = {};
+  for(var c = 0; c < categories.length; c++){
+    var d = CARD_DATA[categories[c]];
+    if(!d) continue;
+    var ri = d.headers.indexOf('稀有度');
+    if(ri < 0) continue;
+    for(var i = 0; i < d.cards.length; i++){
+      var v = d.cards[i][ri];
+      if(!v) continue;
+      var label = (lang === 'en' && RARITY_EN && RARITY_EN[String(v)]) ? RARITY_EN[String(v)] : String(v);
+      set[label] = 1;
+    }
+  }
+  var keys = Object.keys(set).sort();
+  sel.innerHTML = '<option value="">' + t('allRarity') + '</option>' + keys.map(function(k){ return '<option value="'+k+'">'+k+'</option>'; }).join('');
+}
+
+// ---- render tabs ----
+function renderTabs(){
+  var el = $('#tabs'), html = '';
+  for(var i = 0; i < categories.length; i++){
+    var cat = categories[i];
+    var d = CARD_DATA[cat];
+    var cnt = d ? d.cards.length : 0;
+    html += '<button class="tab' + (cat === cur ? ' active' : '') + '" data-cat="' + esc(cat) + '">' + esc(catLabel(cat)) + '<span class="badge">' + cnt + '</span></button>';
+  }
+  el.innerHTML = html;
+  el.onclick = function(ev){
+    var btn = ev.target.closest('.tab');
+    if(!btn) return;
+    cur = btn.dataset.cat;
+    sortCol = null; sortDir = 1;
+    renderAll();
+  };
+}
+
+// ---- render stats ----
+function renderStats(filtered, total){
+  var h = getHeaders();
+  var vis = visibleCols(h).length;
+  var cat = catLabel(cur);
+  var line = '<b>' + esc(cat) + '</b> / ' + total + ' ' + t('rows') + ' &middot; ' + vis + ' ' + t('cols');
+  if(filtered !== total) line += ' (' + t('filtered') + ' ' + filtered + ' ' + t('rows') + ')';
+  $('#stats').innerHTML = line;
+}
+
+// ---- render content ----
+function renderContent(){
+  var zhHeaders = getZhHeaders();
+  var displayHeaders = getHeaders();
+  var cards = getCards();
+  var filtered = [];
+  for(var i = 0; i < cards.length; i++){
+    if(matches(cards[i], zhHeaders)) filtered.push(cards[i]);
+  }
+  // sort
+  if(sortCol !== null && sortCol < zhHeaders.length){
+    filtered.sort(function(a, b){
+      var av = a[sortCol], bv = b[sortCol];
+      if(av == null) return 1;
+      if(bv == null) return -1;
+      var an = parseFloat(av), bn = parseFloat(bv);
+      if(!isNaN(an) && !isNaN(bn)) return (an - bn) * sortDir;
+      return String(av).localeCompare(String(bv)) * sortDir;
+    });
+  }
+  var container = $('#content');
+  if(view === 'card'){
+    renderCards(container, displayHeaders, zhHeaders, filtered);
+  } else {
+    renderTable(container, displayHeaders, zhHeaders, filtered);
+  }
+  renderStats(filtered.length, cards.length);
+}
+
+function renderTable(c, headers, zhHeaders, cards){
+  var vis = visibleCols(headers);
+  var rarityIdx = zhHeaders.indexOf('稀有度');
+  var targetIdx = zhHeaders.indexOf('目标');
+  var nameIdx = zhHeaders.indexOf('卡牌');
+  var html = '<div class="tbl-wrap"><table><thead><tr>';
+  for(var vi = 0; vi < vis.length; vi++){
+    var idx = vis[vi];
+    var arrow = '';
+    if(sortCol === idx) arrow = sortDir > 0 ? ' ▲' : ' ▼';
+    html += '<th data-i="' + idx + '">' + esc(headers[idx]) + '<span class="arrow">' + arrow + '</span></th>';
+  }
+  html += '</tr></thead><tbody>';
+  if(cards.length === 0){
+    html += '<tr><td colspan="' + vis.length + '" style="text-align:center;padding:30px;color:#999">' + t('noResult') + '</td></tr>';
+  } else {
+    for(var r = 0; r < cards.length; r++){
+      var row = cards[r];
+      var rarityVal = rarityIdx >= 0 ? String(row[rarityIdx]||'') : '';
+      html += '<tr class="' + rarityClass(rarityVal) + '">';
+      for(var vi = 0; vi < vis.length; vi++){
+        var idx = vis[vi];
+        var v = row[idx];
+        if(vi === 0){
+          html += '<td class="name">' + esc(lang === 'en' ? cardNameEn(row[nameIdx]) : v) + '</td>';
+        } else if(idx === rarityIdx && lang === 'en'){
+          html += '<td>' + esc(rarityLabel(v)) + '</td>';
+        } else if(idx === targetIdx && lang === 'en'){
+          html += '<td>' + esc(targetLabel(v)) + '</td>';
+        } else {
+          html += v != null ? '<td>' + esc(valEn(v)) + '</td>' : '<td style="color:#ccc">—</td>';
+        }
+      }
+      html += '</tr>';
+    }
+  }
+  html += '</tbody></table></div>';
+  c.innerHTML = html;
+  var ths = c.querySelectorAll('th');
+  for(var i = 0; i < ths.length; i++){
+    ths[i].onclick = function(){
+      var idx = parseInt(this.dataset.i);
+      if(sortCol === idx) sortDir *= -1;
+      else { sortCol = idx; sortDir = 1; }
+      renderContent();
+    };
+  }
+}
+
+function renderCards(c, headers, zhHeaders, cards){
+  var vis = visibleCols(headers);
+  var ni = cardNameIdx(headers);
+  var ci = headers.indexOf(lang === 'en' ? 'Elixir' : '圣水消耗');
+  var ri = headers.indexOf(lang === 'en' ? 'Rarity' : '稀有度');
+  var nameIdx = zhHeaders.indexOf('卡牌');
+  var html = '<div class="card-grid">';
+  for(var r = 0; r < cards.length; r++){
+    var row = cards[r];
+    var name = ni >= 0 ? (lang === 'en' ? cardNameEn(row[nameIdx]) : row[ni]) : '—';
+    name = esc(name);
+    var cost = ci >= 0 && row[ci] != null ? esc(row[ci]) : '';
+    var rarRaw = ri >= 0 && row[ri] ? String(row[ri]) : '';
+    var rar = rarRaw ? rarityLabel(rarRaw) : '';
+    html += '<div class="card"><div class="card-hd"><span class="name">' + name + '</span>';
+    if(cost) html += '<span class="cost">&#x2726;' + cost + '</span>';
+    if(rar) html += '<span class="rlg" style="color:' + rarityColor(rarRaw) + '">' + rar + '</span>';
+    html += '</div><div class="card-body">';
+    for(var vi = 0; vi < vis.length; vi++){
+      var idx = vis[vi];
+      if(idx === ni || idx === ci || idx === ri) continue;
+      var v = row[idx];
+      var label = esc(headers[idx]);
+      html += '<div class="card-row"><span class="l">' + label + '</span><span class="v">' + (v != null ? esc(v) : '<span style="color:#ccc">—</span>') + '</span></div>';
+    }
+    html += '</div></div>';
+  }
+  html += '</div>';
+  c.innerHTML = cards.length ? html : '<div style="padding:30px;text-align:center;color:#999">' + t('noResult') + '</div>';
+}
+
+function countTotal(){
+  var n = 0;
+  for(var i = 0; i < categories.length; i++){
+    var d = CARD_DATA[categories[i]];
+    if(d) n += d.cards.length;
+  }
+  return n;
+}
+
+function renderAll(){
+  renderTabs();
+  renderContent();
+  $('#totalCards').textContent = countTotal();
+}
+
+// ---- events ----
+$('#search').oninput = function(){ query = this.value; renderContent(); };
+$('#rarityF').onchange = function(){ rarity = this.value; renderContent(); };
+$('.view-toggle').onclick = function(ev){
+  var btn = ev.target.closest('button');
+  if(!btn) return;
+  view = btn.dataset.v;
+  var all = $$('.view-toggle button');
+  for(var i = 0; i < all.length; i++) all[i].classList.remove('active');
+  btn.classList.add('active');
+  renderContent();
+};
+
+// ---- language switch ----
+function switchLang(newLang){
+  if(lang === newLang) return;
+  lang = newLang;
+  $('#langZh').classList.toggle('active', lang === 'zh');
+  $('#langEn').classList.toggle('active', lang === 'en');
+  sortCol = null; sortDir = 1;
+  applyUI();
+  renderAll();
+}
+$('#langZh').onclick = function(){ switchLang('zh'); };
+$('#langEn').onclick = function(){ switchLang('en'); };
+
+// ---- init ----
+if(typeof CARD_DATA === 'undefined'){
+  $('#content').innerHTML = '<div style="padding:30px;text-align:center;color:#c33">错误：未加载到数据文件 data.js<br><small>请运行 <code>python build.py</code> 生成数据文件</small></div>';
+} else {
+  applyUI();
+  initRarity();
+  renderAll();
+}
+})();
+</script>
+</body>
+</html>
