@@ -56,8 +56,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .card-row .v{color:#444;text-align:right;word-break:break-word}
 .footer{padding:12px 14px;text-align:center;font-size:11px;color:#aaa;border-top:1px solid #eee;margin-top:12px;line-height:1.8}
 .footer code{background:#f0f0f5;padding:1px 5px;border-radius:3px}
-.footer a{color:#2196F3;text-decoration:underline}
-.footer .note{color:#999}
+.glossary-link{color:#2196F3;text-decoration:underline}
+.glossary-link:visited{color:#2196F3}
+
 </style>
 </head>
 <body>
@@ -80,8 +81,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 <div id="content"></div>
 <div class="footer">
   <span id="footerUpdate">数据更新：截止到2026.5</span>
-  <br><span class="note">说明：<!-- 填写注释，如：移动速度单位为 格/秒，每格即每个 tile --></span>
-  <br><a href=""><!-- 链接文字 --></a>
 </div>
 
 <script src="data.js"></script>
@@ -109,6 +108,32 @@ function valEn(v){
   if(v === '否') return 'No';
   return v;
 }
+
+// ---- glossary ----
+var GLOSSARY = {
+  zh: [
+    { term: '移动速度', href: 'https://www.bilibili.com/video/BV1Bv4y1J74E', desc: '单位每秒移动的格数，游戏内单位是(距离/帧)，因为CR是每秒20帧，1000距离为1格，所以换算成标准值是20/1000(格/秒)' },
+    { term: '弹道速度', href: 'https://www.bilibili.com/video/BV1Bv4y1J74E', desc: '弹道每秒移动的格数，单位同移动速度' },
+    { term: '攻击速度', href: 'https://www.bilibili.com/video/BV1Fo4y1j77S', desc: '每攻击一次需要的时间(秒)，攻击速度=首次攻击时间+加载时间' },
+    { term: '首次攻击时间', href: 'https://www.bilibili.com/video/BV1Fo4y1j77S', desc: '相当于攻击前摇时间(秒)' },
+    { term: '加载时间', href: 'https://www.bilibili.com/video/BV1Fo4y1j77S', desc: '相当于锁定目标时间(秒)' },
+    { term: '缩放比例', href: 'https://www.bilibili.com/video/BV1KpoXBqEYe/', desc: '卡牌模型大小' },
+    { term: '碰撞半径', href: 'https://www.bilibili.com/video/BV1NoNRzhEzy', desc: '单位之间交互的碰撞箱，一般都是圆形，滚木和滚筒是矩形' },
+    { term: '质量', href: 'https://www.bilibili.com/video/BV1NoNRzhEzy', desc: '单位的重量' },
+    { term: '瞄准夹', href: 'https://www.bilibili.com/opus/1016344052870676502', desc: '影响攻城单位受建筑的吸引情况' },
+  ],
+  en: [
+    { term: 'Move Speed', href: '', desc: 'Distance moved per second, measured in tiles/s' },
+    { term: 'Projectile Speed', href: '', desc: 'Projectile travel speed, same unit as move speed' },
+    { term: 'Hit Speed', href: '', desc: 'Time between attacks (seconds). Hit Speed = First Hit Time+ Load Time' },
+    { term: 'First Hit', href: '', desc: 'Attack wind-up time (seconds)' },
+    { term: 'Load Time', href: '', desc: 'Target lock-on time (seconds)' },
+    { term: 'Scale', href: '', desc: 'Card model size multiplier' },
+    { term: 'Collision Radius', href: '', desc: 'Hitbox for unit interactions, usually circular. Log/Barb Barrel are rectangular' },
+    { term: 'Mass', href: '', desc: 'Unit weight, affects units push' },
+    { term: 'Sight Clip', href: '', desc: 'Unit weight, affects the attraction of siege units to buildings.' },
+  ]
+};
 
 // ---- i18n ----
 var lang = 'zh';
@@ -270,6 +295,7 @@ function initRarity(){
 }
 
 // ---- render tabs ----
+var GLOSSARY_KEY = '__glossary__';
 function renderTabs(){
   var el = $('#tabs'), html = '';
   for(var i = 0; i < categories.length; i++){
@@ -278,6 +304,7 @@ function renderTabs(){
     var cnt = d ? d.cards.length : 0;
     html += '<button class="tab' + (cat === cur ? ' active' : '') + '" data-cat="' + esc(cat) + '">' + esc(catLabel(cat)) + '<span class="badge">' + cnt + '</span></button>';
   }
+  html += '<button class="tab' + (cur === GLOSSARY_KEY ? ' active' : '') + '" data-cat="' + GLOSSARY_KEY + '">' + (lang === 'en' ? 'Glossary' : '名词解释') + '</button>';
   el.innerHTML = html;
   el.onclick = function(ev){
     var btn = ev.target.closest('.tab');
@@ -407,6 +434,18 @@ function renderCards(c, headers, zhHeaders, cards){
   c.innerHTML = cards.length ? html : '<div style="padding:30px;text-align:center;color:#999">' + t('noResult') + '</div>';
 }
 
+function renderGlossary(){
+  var items = GLOSSARY[lang] || GLOSSARY['zh'];
+  var html = '<div style="max-width:800px;margin:0 auto;padding:20px 14px;line-height:2;font-size:13px;color:#444">';
+  for(var i = 0; i < items.length; i++){
+    var it = items[i];
+    var link = it.href ? '<a class="glossary-link" href="' + it.href + '" target="_blank">' + esc(it.term) + '</a>' : esc(it.term);
+    html += '<p>' + (i+1) + '. ' + link + ' — ' + esc(it.desc) + '</p>';
+  }
+  html += '</div>';
+  $('#content').innerHTML = html;
+}
+
 function countTotal(){
   var n = 0;
   for(var i = 0; i < categories.length; i++){
@@ -418,8 +457,21 @@ function countTotal(){
 
 function renderAll(){
   renderTabs();
-  renderContent();
+  if(cur === GLOSSARY_KEY){
+    renderGlossary();
+  } else {
+    renderContent();
+  }
   $('#totalCards').textContent = countTotal();
+  var ctrl = $('.controls');
+  var stats = $('#stats');
+  if(cur === GLOSSARY_KEY){
+    ctrl.style.display = 'none';
+    stats.style.display = 'none';
+  } else {
+    ctrl.style.display = '';
+    stats.style.display = '';
+  }
 }
 
 // ---- events ----
