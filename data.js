@@ -7758,7 +7758,7 @@ var HEADERS_EN = {
     "Activation Delay (s)",
     "Projectile Speed (tiles/s)",
     "Gravity (tiles/s²)",
-    "Traits"
+    "Characteristic"
   ],
   "进化": [
     "Card",
